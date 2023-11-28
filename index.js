@@ -4,6 +4,7 @@ require('dotenv').config()
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
+const stripe = require("stripe")(process.env.PEYMENT_KEY)
 const jwt = require('jsonwebtoken')
 const morgan = require('morgan')
 const port = process.env.PORT || 5000
@@ -47,6 +48,9 @@ async function run() {
     try {
 
         const userCollection = client.db("MatrimonyDB").collection("users");
+        const dataCollection = client.db("MatrimonyDB").collection("data");
+        const favoriteBiodataCollection = client.db("MatrimonyDB").collection("favoriteData");
+        const requestBiodataCollection = client.db("MatrimonyDB").collection("requestData");
 
 
         app.post('/jwt', async (req, res) => {
@@ -97,6 +101,117 @@ async function run() {
             )
             res.send(result)
         })
+
+
+        app.get('/user/:email', async (req, res) => {
+            const email = req.params.email
+            const result = await userCollection.findOne({ email })
+            res.send(result)
+        })
+
+
+
+
+        app.post('/Biodata', async (req, res) => {
+
+            const BiodataId = await dataCollection.find().toArray()
+            const data = req.body;
+            // console.log(BiodataId.length + 1)
+
+            await dataCollection.insertOne(data);
+            const options = { upsert: true }
+            const result = await dataCollection.updateOne(
+                data,
+                {
+                    $set: { Biodataid: BiodataId.length + 1 },
+                },
+                options
+            )
+            res.send(result)
+
+        })
+
+
+
+        app.post('/favoriteData', async (req, res) => {
+            const data = req.body
+            const result = await favoriteBiodataCollection.insertOne(data)
+            res.send(result)
+        })
+
+
+
+        app.post('/requestdata',verifyToken, async (req, res) => {
+            const data = req.body
+            const result = await requestBiodataCollection.insertOne(data)
+            res.send(result)
+        })
+
+
+        // app.get('/requestdata', async (req, res) => {
+        //     const data = req.body
+        //     const result = await requestBiodataCollection.find(data).toArray()
+        //     res.send(result)
+        // })
+
+    
+
+        // paymeny
+
+
+        app.post('/create-payment-intent', async (req, res) => {
+
+            const { price } = req.body;
+
+            console.log(price)
+            const amount = parseInt(price * 100)
+            if (!price || amount < 1) return res.send('aaa')
+            const { client_secret } = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ['card'],
+            });
+            res.send({
+                clientSecret: client_secret,
+            });
+        })
+
+
+
+
+
+        app.get('/AllBiodata', async (req, res) => {
+            const result = await dataCollection.find().toArray()
+            res.send(result)
+
+        })
+
+
+        app.get('/AllBiodata/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { Email: email }
+            const result = await dataCollection.find(query).toArray()
+            res.send(result)
+
+        })
+
+
+
+        app.get('/SingleBiodata/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await dataCollection.findOne(query)
+            res.send(result)
+        })
+
+
+
+
+
+
+
+
+
 
 
         await client.db('admin').command({ ping: 1 })
