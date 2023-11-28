@@ -103,6 +103,13 @@ async function run() {
         })
 
 
+        app.get('/users', async (req, res) => {
+            const result = await userCollection.find().toArray()
+            res.send(result)
+        })
+
+
+
         app.get('/user/:email', async (req, res) => {
             const email = req.params.email
             const result = await userCollection.findOne({ email })
@@ -141,23 +148,36 @@ async function run() {
 
 
 
-        app.post('/requestdata',verifyToken, async (req, res) => {
+        app.get('/AllfavoriteData', async (req, res) => {
+            const result = await favoriteBiodataCollection.find().toArray()
+            res.send(result)
+        })
+
+
+        app.get('/AllfavoriteBiodata/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { Email: email }
+            const result = await favoriteBiodataCollection.find(query).toArray()
+            res.send(result)
+        })
+
+
+
+        app.post('/requestdata', async (req, res) => {
             const data = req.body
             const result = await requestBiodataCollection.insertOne(data)
             res.send(result)
         })
 
 
-        // app.get('/requestdata', async (req, res) => {
-        //     const data = req.body
-        //     const result = await requestBiodataCollection.find(data).toArray()
-        //     res.send(result)
-        // })
+        app.get('/Allrequestdata', async (req, res) => {
+            const data = req.body
+            const result = await requestBiodataCollection.find(data).toArray()
+            res.send(result)
+        })
 
-    
 
         // paymeny
-
 
         app.post('/create-payment-intent', async (req, res) => {
 
