@@ -103,6 +103,55 @@ async function run() {
         })
 
 
+        app.patch('/AllBiodataUpdate/:id', async (req, res) => {
+
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const update = req.body;
+            const updateDoc = {
+                $set: {
+                    BiodataStatas: update.BiodataStatas,
+                }
+            }
+            const result = await dataCollection.updateOne(filter, updateDoc)
+            res.send(result)
+
+        })
+
+
+
+        app.patch('/MakeAdmin/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const update = req.body;
+            const updateDoc = {
+                $set: {
+                    role: update.role,
+                }
+            }
+            const result = await userCollection.updateOne(filter, updateDoc)
+            res.send(result)
+
+        })
+
+
+        app.patch('/approvedrequest/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const update = req.body;
+            const updateDoc = {
+                $set: {
+                    statas: update.statas,
+                }
+            }
+            const result = await requestBiodataCollection.updateOne(filter, updateDoc)
+            res.send(result)
+
+        })
+
+
+
+
         app.get('/users', async (req, res) => {
             const result = await userCollection.find().toArray()
             res.send(result)
@@ -148,7 +197,7 @@ async function run() {
 
 
 
-        app.get('/AllfavoriteData', async (req, res) => {
+        app.get('/Allfavorite', async (req, res) => {
             const result = await favoriteBiodataCollection.find().toArray()
             res.send(result)
         })
@@ -160,6 +209,24 @@ async function run() {
             const result = await favoriteBiodataCollection.find(query).toArray()
             res.send(result)
         })
+
+
+
+        app.delete("/deletefavoriteBiodata/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await favoriteBiodataCollection.deleteOne(query);
+            res.send(result);
+        })
+
+
+        app.delete("/deleteRequestBiodata/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await requestBiodataCollection.deleteOne(query);
+            res.send(result);
+        })
+
 
 
 
@@ -207,7 +274,34 @@ async function run() {
         })
 
 
-        app.get('/AllBiodata/:email', async (req, res) => {
+
+        app.get('/AllBiodataa', async (req, res) => {
+            let query = {};
+            const Type = req.query.Type
+            const Permanent_Division = req.query.Permanent_Division
+            const Age = req.query.Age
+            if (Type) {
+                query.Type = Type;
+            }
+            if (Permanent_Division) {
+                query.Permanent_Division = Permanent_Division;
+            }
+            if (Age) {
+                query.Age = Age;
+            }
+            const cursor = dataCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+
+        })
+
+
+
+
+
+
+
+        app.get('/AllBiodata/:email', verifyToken, async (req, res) => {
             const email = req.params.email
             const query = { Email: email }
             const result = await dataCollection.find(query).toArray()
@@ -234,7 +328,7 @@ async function run() {
 
 
 
-        await client.db('admin').command({ ping: 1 })
+        // await client.db('admin').command({ ping: 1 })
         console.log(
             'Pinged your deployment. You successfully connected to MongoDB!'
         )
