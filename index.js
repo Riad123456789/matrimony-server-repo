@@ -11,7 +11,7 @@ const port = process.env.PORT || 5000
 
 
 const corsOptions = {
-    origin: ['http://localhost:5173'],
+    origin: ["https://assignment-12-project.web.app",'http://localhost:5174'],
     credentials: true,
     optionSuccessStatus: 200,
 }
